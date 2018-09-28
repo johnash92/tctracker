@@ -18,11 +18,12 @@ optionally plotted.
 '''
 import iris
 import numpy as np
+from load_data import * 
 
 def main():
     # Location and name of input data (.pp files).
-    pp_loc = ''
-    pp_file = ''
+    pp_loc = '/nfs/a319/scjea/large_ensemble/tracking_data/'
+    pp_file = 'tcver3hr_bigensemble_1203_12Z_em00.pp'
 
     # Location of best track data. If inputting best track data change
     # 'best_track_data' to 1, otherwise keep at 0. Best track data should, as a
@@ -41,7 +42,7 @@ def main():
     calc_maxswpeed = 1
     # Load the data that will be needed for the tracker.
     pp_df = pp_loc + pp_file
-    cubes = load_data(pp_df,load_10mwpeed=calc_maxswpeed)
+    cubes = load_data(pp_df,load_10mwspeed=calc_maxswpeed)
 
     # 
 
@@ -49,7 +50,7 @@ def main():
     # ways. For now we use the pressure centroid technique (see pc_track)
 
     slp = cubes['slp']
-
+    print slp
 
     coords = pc_track(slp)
 
