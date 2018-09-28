@@ -7,7 +7,7 @@ stored in iris cubes. It is assumed that the following is required:
 It is used with the tctracker code.
 '''
 
-def load_data(df,load_10mwspeed=1,load_850windspeed=1):
+def load_model_data(df,load_10mwspeed=1,load_850windspeed=1):
     '''
     Load data as cubes and return as dictionary of cubes. If load_10mwspeed
     or load_850windspeed = 0 then these will not be loaded.
@@ -37,4 +37,23 @@ def load_data(df,load_10mwspeed=1,load_850windspeed=1):
         v850 = iris.load_cube(df,v_constraint).extract(p_constraint)
         cubes['u850'] = u850; cubes['v850'] = v850
 
-    return cubes 
+    return cubes
+
+def find_init_guess(df,yr,monthday,time):
+'''
+Find the location of the storm according to ibtracs data at the time determined
+my monthday (mmdd) and time (hh).
+'''
+    from netCDF4 import Dataset
+    from netCDF4 import num2date
+    import datetime as dt
+    mth = int(str(monthday)[0:2]); day = int(str(monthday)[2:]) # Change monthday to two separate variables
+    dataset = Dataset(df)
+    lats =  dataset.variables['lat_wmo'][:]
+    lons = dataset.variables['lon_wmo'][:]
+    times = num2date(dataset.variables['time_wmo'][:],dataset.variables['time_wmo'].units)
+    times[:] = [time.replace(microsecond=0) for time in times]
+    tgt_dt = dt.datetime(yr,mth,day,time)
+    idx = times.index(tgt_dt)
+    lat = lats[idx]; lon = lons[idx]
+    return lat,lon

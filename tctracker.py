@@ -18,7 +18,7 @@ optionally plotted.
 '''
 import iris
 import numpy as np
-from load_data import * 
+from load_data import *
 
 def main():
     # Location and name of input data (.pp files).
@@ -42,15 +42,12 @@ def main():
     calc_maxswpeed = 1
     # Load the data that will be needed for the tracker.
     pp_df = pp_loc + pp_file
-    cubes = load_data(pp_df,load_10mwspeed=calc_maxswpeed)
+    cubes = load_model_data(pp_df,load_10mwspeed=calc_maxswpeed)
 
-    # 
+    #
 
     # First of all find the track of the storm. This can be done a number of
-    # ways. For now we use the pressure centroid technique (see pc_track)
-
-    slp = cubes['slp']
-    print slp
+    # ways. For now we use the pressure centroid technique (see pc_track).
 
     coords = pc_track(slp)
 
