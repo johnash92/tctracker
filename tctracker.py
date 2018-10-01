@@ -19,6 +19,7 @@ optionally plotted.
 import iris
 import numpy as np
 from load_data import *
+import datetime
 
 def main():
     # Location and name of input data (.pp files).
@@ -29,8 +30,8 @@ def main():
     # 'best_track_data' to 1, otherwise keep at 0. Best track data should, as a
     # minimum include the location of the storm at timestep - 1.
     best_track_data = 0 # Change to 0 if no best track is available.
-    best_track_loc = ''
-    best_track_file = ''
+    best_track_loc = '/nfs/a37/scjea/plot_scripts/tc_analysis/intensity_track/ibtracs/'
+    best_track_file = 'hagupit_ibtracs2.nc'
 
     # Output location
     outfile_loc = ''
@@ -43,13 +44,27 @@ def main():
     # Load the data that will be needed for the tracker.
     pp_df = pp_loc + pp_file
     cubes = load_model_data(pp_df,load_10mwspeed=calc_maxswpeed)
+    slp = cubes['slp']
 
-    #
+    dt = 3 # NEED TO CHANGE THIS
 
     # First of all find the track of the storm. This can be done a number of
     # ways. For now we use the pressure centroid technique (see pc_track).
 
-    coords = pc_track(slp)
+    # First step is to find an initial guess. This is done via the function,
+    # however we first need to the date and time fo the forecast.
+    fc_time = slp.coord('forecast_reference_time').points
+    time_unit = slp.coord('forecast_reference_time').units
+    fc_yr = time_unit.num2date(fc_time)[0].year
+    fc_mth = time_unit.num2date(fc_time)[0].month
+    fc_day = time_unit.num2date(fc_time)[0].day
+    fc_hr = time_unit.num2date(fc_time)[0].hour
+
+    best_track_df = best_track_loc + best_track_file
+
+    [init_lat,init_lon] = find_init_guess(best_track_df,fc_yr,fc_mth,fc_day,fc_hr)
+
+    coords = pc_track(slp,init_lat,init_lon,dt=dt)
 
 
 
