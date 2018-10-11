@@ -40,10 +40,10 @@ def load_model_data(df,load_10mwspeed=1,load_850windspeed=1):
     return cubes
 
 def find_init_guess(df,yr,mth,day,time):
-'''
-Find the location of the storm according to ibtracs data at the time determined
-my monthday (mmdd) and time (hh).
-'''
+    '''
+    Find the location of the storm according to ibtracs data at the time determined
+    my monthday (mmdd) and time (hh).
+    '''
     from netCDF4 import Dataset
     from netCDF4 import num2date
     import datetime as dt
