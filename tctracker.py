@@ -45,6 +45,8 @@ def main():
     pp_df = pp_loc + pp_file
     cubes = load_model_data(pp_df,load_10mwspeed=calc_maxswpeed)
     slp = cubes['slp']
+    u10 = cubes['u10m']
+    v10 = cubes['v10m']
 
     dt = 3 # NEED TO CHANGE THIS
 
@@ -64,7 +66,7 @@ def main():
 
     [init_lat,init_lon] = find_init_guess(best_track_df,fc_yr,fc_mth,fc_day,fc_hr)
 
-    coords = pc_track(slp,init_lat,init_lon,dt=dt)
+    coords = pc_track(slp,u10,v10,init_lat,init_lon,dt=dt)
 
 
 
