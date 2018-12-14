@@ -1,3 +1,11 @@
+'''
+Number of tools which are required for tc_tracker.
+Contents:
+ - box_constraint(minlat,minlon,maxlat,maxlon):
+       Creates iris constraint on latitude and longitude. Four coordinates required.
+'''
+
+
 def box_constraint(minlat,maxlat,minlon,maxlon):
     import iris
     # Create constraint to extract data from cube over a certain region
