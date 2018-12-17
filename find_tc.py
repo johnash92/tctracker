@@ -27,4 +27,13 @@ def find_tc(vrt):
             loc_lon = vrt.coord('longitude').points[idx[1]]
             
             vrt.data = np.ma.masked_where((LATS > loc_lat-tc_rad))
+            vrt.data = np.ma.masked_where((LATS > loc_lat+tc_rad))
+            vrt.data = np.ma.masked_where((LONS > loc_lon-tc_rad))
+            vrt.data = np.ma.masked_where((LONS > loc_lon+tc_rad))
             
+            
+def chack_vrt():
+    
+def check_mslp():
+    
+def 
