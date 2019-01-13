@@ -14,11 +14,12 @@ John Ashcroft, September 2018
 '''
 import iris
 import numpy as np
-from toolbox import box_constraint
+from toolbox import *
 
-def pc_tracker(slp,u,v,lat0,lon0,dt=3):
+def pc_tracker(slp,u,v,lat0,lon0,dt=3,max_disp=0.01,max_iter=50):
     # First make sure we only have the data we want according to the timestep
     # dt
+    elaps_t = 0
     hour_dt = iris.Constraint(time= lambda cell: cell.point.hour % dt ==0 and cell.point.minute==0)
     with iris.FUTURE.context(cell_datetime_objects=True):
         slp = slp.extract(hour_dt)
@@ -33,13 +34,20 @@ def pc_tracker(slp,u,v,lat0,lon0,dt=3):
     minlon = prevlon - 5; maxlon = prevlon + 5
     b_constraint = box_constraint(minlat,maxlat,minlon,maxlon)
 
-    lats = []; lons = []
-
+    lats = []; lons = []; mslp = []; maxws = []
+    print("Starting PC Tracker")
     for slp_slc,u_slc,v_slc in zip(slp.slices(['latitude','longitude']),
-                                    u.slices(['latitude','longitude'])
+                                    u.slices(['latitude','longitude']),
                                     v.slices(['latitude','longitude'])):
+        ws = (u_slc**2 + v_slc**2)**0.5
+        elaps_t += dt
+        minlat = prevlat - 5; maxlat = prevlat + 5;
+        minlon = prevlon - 5; maxlon = prevlon + 5
+        b_constraint = box_constraint(minlat,maxlat,minlon,maxlon)
         slp_red = slp_slc.extract(b_constraint)
         prevlat,prevlon = find_min_coords(slp_red,rad=5)
+        minslp = np.amin(slp_red.data)
+        maxwinds = np.amax(ws.data)
         dlon = 1e7; dlat = 1e7;
         conditions = [dlon > 0.1, dlat > 0.1]
         num_iterations = 0
@@ -51,14 +59,17 @@ def pc_tracker(slp,u,v,lat0,lon0,dt=3):
             dlon = abs(prevlon - newlon)
             dlat = abs(prevlat - newlat)
             prevlat = newlat; prevlon = newlon
-            conditions = [(dlon**2 + dlat**2)**0.5 > 0.04 * 2**0.5, num_iterations < 25]
+            conditions = [(dlon**2 + dlat**2)**0.5 > max_disp, num_iterations < max_iter]
             num_iterations += 1
-        print('Step complete, number of iterations = {0}'.format(num_iterations))
-    lats.append(newlat); lons.append(newlon)
-coords = dict()
-coords['lats'] = lats
-coords['lons'] = lons
-return coords
+        print('T+{1}: Step complete, number of iterations = {0}'.format(num_iterations,elaps_t))
+        lats.append(newlat); lons.append(newlon)
+        mslp.append(minslp); maxws.append(maxwinds)
+    tcver_data = dict()
+    tcver_data['lats'] = lats
+    tcver_data['lons'] = lons
+    tcver_data['mslp'] = mslp
+    tcver_data['maxws'] = maxws
+    return tcver_data
 
 
 def find_rad(u,v,cenlat,cenlon,perc=80):
@@ -71,8 +82,8 @@ def find_rad(u,v,cenlat,cenlon,perc=80):
     for r in radii:
         r_speed = []
         for phi in phis:
-            xpoi = x0 + 0.009*r*np.cos(phi)
-            ypoi = y0 + 0.009*r*np.sin(phi)
+            xpoi = cenlon + 0.009*r*np.cos(phi)
+            ypoi = cenlat + 0.009*r*np.sin(phi)
             new_point = [('latitude',ypoi),('longitude',xpoi)]
             u_oi = u.interpolate(new_point,iris.analysis.Linear()).data
             v_oi = v.interpolate(new_point,iris.analysis.Linear()).data
@@ -86,9 +97,9 @@ def find_rad(u,v,cenlat,cenlon,perc=80):
     wspeed = np.asarray(wspeed)
     idx = np.argwhere(np.diff(np.sign(tgt - wspeed)) != 0).reshape(-1)
     radius = radii[idx[0]]
-return radius
+    return radius
 
-def find_min_coords(sube,rad=1e10):
+def find_min_coords(cube,rad=1e10):
     # Find the latitude and longitude of the minimum value of data in a 2d cube.
     index = np.argmin(cube.data)
     indices= np.unravel_index(index,cube.data.shape)
@@ -114,7 +125,6 @@ def pressure_centroid(slp,rad,y0,x0,env_p):
     # Compute the new centre lat/lon according to a pressure centroid.
     dP = slp * -1.
     dP.data = dP.data + env_p # Deviation of SLP from the environment
-
     rad_in_deg = rad * 0.009
     minlat = y0 - rad_in_deg * 1.1; maxlat = y0 + rad_in_deg * 1.1
     minlon = x0 - rad_in_deg * 1.1; maxlon = x0 + rad_in_deg * 1.1
@@ -123,8 +133,8 @@ def pressure_centroid(slp,rad,y0,x0,env_p):
 
     x_top = 0; y_top = 0
     x_bot = 0; y_bot = 0
-    num_x = red_slp.coord('longitude').points.size
-    num_y = red_slp.coord('latitude').points.size
+    num_x = red_dp.coord('longitude').points.size
+    num_y = red_dp.coord('latitude').points.size
 
     for i in np.arange(num_y):
         lat = red_dp.coord('latitude').points[i]
@@ -145,14 +155,3 @@ def pressure_centroid(slp,rad,y0,x0,env_p):
     new_lon = x_top / x_bot
     new_lat = y_top / y_bot
     return new_lat, new_lon
-
-
-def haversine_d(lat1, lat2, lon1, lon2):
-# Calculates the distances between two points given in lat and lon coords
-    r = 6.37e6
-    lat1 = radians(lat1); lat2 = radians(lat2)
-    lon1 = radians(lon1); lon2 = radians(lon2)
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    d = 2*r*np.arcsin(np.sqrt(np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2))
-    return d

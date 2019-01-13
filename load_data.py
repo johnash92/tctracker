@@ -47,12 +47,13 @@ def find_init_guess(df,yr,mth,day,time):
     from netCDF4 import Dataset
     from netCDF4 import num2date
     import datetime as dt
+    import numpy as np
     dataset = Dataset(df)
     lats =  dataset.variables['lat_wmo'][:]
     lons = dataset.variables['lon_wmo'][:]
     times = num2date(dataset.variables['time_wmo'][:],dataset.variables['time_wmo'].units)
-    times[:] = [time.replace(microsecond=0) for time in times]
+    times[:] = [t.replace(microsecond=0) for t in times]
     tgt_dt = dt.datetime(yr,mth,day,time)
-    idx = times.index(tgt_dt)
+    idx = np.where(times==tgt_dt)
     lat = lats[idx]; lon = lons[idx]
-    return [lat,lon]
+    return [lat[0],lon[0]]

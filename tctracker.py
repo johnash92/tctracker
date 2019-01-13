@@ -19,6 +19,7 @@ optionally plotted.
 import iris
 import numpy as np
 from load_data import *
+from pctracker import *
 import datetime
 
 def main():
@@ -34,8 +35,9 @@ def main():
     best_track_file = 'hagupit_ibtracs2.nc'
 
     # Output location
-    outfile_loc = ''
-
+    outfile_loc = '/nfs/a319/scjea/new_trackdata/'
+    outfile_name = 'bigens_pctrack_1203_12Z_em00.npy'
+    outfile = outfile_loc + outfile_name
     # Tracker will automatically calculate the mslp and (if data is available)
     # the maximum windspeed. If you would not like this to be the case change
     # the following values to 0.
@@ -48,7 +50,7 @@ def main():
     u10 = cubes['u10m']
     v10 = cubes['v10m']
 
-    dt = 3 # NEED TO CHANGE THIS
+    dt = 3. # NEED TO CHANGE THIS - should be automatically found
 
     # First of all find the track of the storm. This can be done a number of
     # ways. For now we use the pressure centroid technique (see pc_track).
@@ -63,11 +65,13 @@ def main():
     fc_hr = time_unit.num2date(fc_time)[0].hour
 
     best_track_df = best_track_loc + best_track_file
-
     [init_lat,init_lon] = find_init_guess(best_track_df,fc_yr,fc_mth,fc_day,fc_hr)
-
-    coords = pc_track(slp,u10,v10,init_lat,init_lon,dt=dt)
-
+    print("Initial search position: ({0}, {1})".format(init_lat,init_lon))
+    tcver_data = pc_tracker(slp,u10,v10,init_lat,init_lon,dt=dt)
+    print("Saving track data...")
+    np.save(outfile,tcver_data)
+    print("It works!")
+    
 
 
 
