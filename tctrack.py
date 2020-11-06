@@ -29,7 +29,7 @@ def main():
     
     for cenlat, cenlon in zip(cenlats, cenlons):
         track = jdfk()
-        track.
+        track.dlkfjlk
     
     print(tracker_data)
     return
