@@ -1,0 +1,7 @@
+dataloc=C:/Users/johna/PhD/code/tctracker/data/global_pcentroid_test.pp
+method=press_centroid
+stormname=Hagupit
+stormyear=2014
+initlat=None
+initlon=None
+findall=No

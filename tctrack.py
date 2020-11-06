@@ -16,16 +16,48 @@ optionally plotted.
 
                                     John Ashcroft, Uni. of Leeds, September 2018
 '''
-import iris
-import numpy as np
-from load_data import *
-from pctracker import *
-import datetime
+from loaddata import modeldata as md
+from tracker import trackingdata
+from tracker import initpos
 
 def main():
-    # Location and name of input data (.pp files).
-    pp_loc = '/nfs/a319/scjea/large_ensemble/tracking_data/'
-    pp_file = 'tcver3hr_bigensemble_1203_12Z_em00.pp'
+    
+    tracker_data = md.loadcubes()
+    
+    ## To do: find start points
+    cenlats, cenlons = initpos.find_minslp(tracker_data['slp'])
+    
+    for cenlat, cenlon in zip(cenlats, cenlons):
+        track = jdfk()
+        track.
+    
+    print(tracker_data)
+    return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # Location of best track data. If inputting best track data change
     # 'best_track_data' to 1, otherwise keep at 0. Best track data should, as a
