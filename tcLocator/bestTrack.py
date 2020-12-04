@@ -8,7 +8,6 @@ import datetime as dt
 
 URL = 'https://www.ncei.noaa.gov/data/' +\
         'international-best-track-archive-for-climate-stewardship-ibtracs/'
-# 'v04r00/access/csv/'
 
 class ibtracsNamedStorm:
     
@@ -58,7 +57,7 @@ class ibtracsNamedStorm:
         self.DATAURL = self.BASEURL + '/access/csv/'
         
     def downloadIBTrACS(self):
-        besttrack_df = '../Data/IBTrACS_all_{0}.nc'.format(self.versStr)
+        besttrack_df = './Data/IBTrACS_all_{0}.nc'.format(self.versStr)
         if os.path.exists(besttrack_df):
             return
         else:
@@ -72,7 +71,7 @@ class ibtracsNamedStorm:
         self.getLatestVersion()
         self.getSerialNumber()
         self.downloadIBTrACS()
-        besttrack_df = '../Data/IBTrACS_all_{0}.nc'.format(self.versStr)
+        besttrack_df = './Data/IBTrACS_all_{0}.nc'.format(self.versStr)
         tc_data = Dataset(besttrack_df)
         
         storm_id_list = [bytes_to_str(i) for i in tc_data['sid'][:]]

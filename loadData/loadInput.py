@@ -21,10 +21,16 @@ class inputParams:
         if 'stormname' in input_dict:
             self.stormName = input_dict['stormname']
         if 'stormyear' in input_dict:
-            self.stormYear = input_dict['stormyear']
+            self.stormYear = int(input_dict['stormyear'])
         if 'initlat' in input_dict:
             self.initLat = input_dict['initlat']
+        else:
+            self.initLat = None
         if 'initlon' in input_dict:
             self.initLon = input_dict['initlon']
+        else:
+            self.initLat = None
         if 'findall' in input_dict:
             self.findAll = input_dict['findall']
+        if 'inittime' in input_dict:
+            self.inittime = input_dict['inittime']

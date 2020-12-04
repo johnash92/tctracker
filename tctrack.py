@@ -1,37 +1,39 @@
-'''
-Tropical cyclone tracking program V 1.0.0
-
-This program tracks a tropical cyclone using data in a .pp file. The data
-produced is the following:
- - Track
- - Maximum 10m windspeed
- - Minimum sea level pressure
-
-Default is to use 3 hourly timesteps. Each of the metrics is treated separately
-using their relevant scripts. They all use techniques which have been tested and
-found to be the most accurate.
-
-Optionally can input best track data. All data produced is saved, can also be
-optionally plotted.
-
-                                    John Ashcroft, Uni. of Leeds, September 2018
-'''
 from loadData import loadInput, loadModelData
-from tcLocator import findTC
-import bestTrack
+from tcLocator import findTC, bestTrack
+import datetime as dt
+import trackers 
 
-INPUT_LOC = './input'
+INPUT_LOC = './input.txt'
+
+class Input(object): 
+    def __init__(self,inputs=None,initLon=None,initLat=None,dt=None):
+        self.method = inputs.method
+        self.dataloc = inputs.dataloc
+        self.initLat = initLat
+        self.initLon = initLon
+        self.time0 = inputs.time0
+        self.dt = dt
+        
 
 def main():
+    # Load input from the input.txt file
     inputs = loadInput.inputParams(inputloc=INPUT_LOC)
+    inputs.time0 = dt.datetime.strptime(inputs.inittime,'%Y%m%dT%H%MZ')
     if inputs.initLat == None or inputs.initLon == None:
-        ibtracsTrack = bestTrack.ibtracs(name=inputs.StormName,
-                                         year=inputs.StormYear)
+        ibtracsTrack = bestTrack.ibtracsNamedStorm(stormName=inputs.stormName,
+                                         stormYear=inputs.stormYear)
+    # Find initial guess of storm location from ibtracs
+    initlat, initlon = ibtracsTrack.locateStorm(inputs.time0)
+    # TODO deal withg dt better
+    trackerInput = Input(inputs=inputs,initLat=initlat,initLon=initlon,dt=3)
+    
+    
+    if trackerInput.method == 'press_centroid':
+        tcTrack = trackers.pressCentroid.tracker(trackerInput)
+        tcTrack.loadData()
         
-    
-    
-    
-    print(inputs.method)
+        
+        
     
     
     
